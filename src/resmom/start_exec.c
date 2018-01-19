@@ -95,6 +95,7 @@
 #include "mom_hook_func.h"
 #include "placementsets.h"
 #include "pbs_internal.h"
+#include "pbs_reliable.h"
 
 #define	PIPE_READ_TIMEOUT	5
 #define EXTRA_ENV_PTRS	       32
@@ -2157,7 +2158,7 @@ send_string_data(int upfds, int downfds, void *r_buf, size_t r_size)
 char *
 receive_string_data(int downfds, int  upfds)
 {
-	char	*r_buf = NULL;
+	char	*r_buf;
 	size_t	r_size;
 
 	/* get size of buffer to receive */
@@ -2465,7 +2466,7 @@ get_new_exec_vnode_host_schedselect(job *pjob, char *msg, size_t msg_size)
 	char	*new_exec_vnode = NULL;
 	char	*new_exec_host = NULL;
 	char	*new_schedselect = NULL;
-	char	*r_buf = NULL;
+	char	*r_buf;
 	int	rc = 0;
 
 	/* get exec_vnode don't close pipes */
@@ -4265,7 +4266,7 @@ finish_exec(job *pjob)
 		vnl_good = NULL;
 
 		if (pjob->ji_numnodes > 1) {
-			snprintf(log_buffer, sizeof(log_buffer), "waiting up to %u secs ($job_launch_delay) for mom hosts status and prologue hooks ack", job_launch_delay);
+			snprintf(log_buffer, sizeof(log_buffer), "waiting up to %d secs ($job_launch_delay) for mom hosts status and prologue hooks ack", job_launch_delay);
 			log_event(PBSEVENT_DEBUG3, PBS_EVENTCLASS_JOB, LOG_DEBUG, pjob->ji_qs.ji_jobid, log_buffer);
 			/* a filled-in log_buffer could be mistaken for an error message */
 			log_buffer[0] = '\0';
@@ -6207,7 +6208,7 @@ start_exec(job *pjob)
 			if (pjob->ji_qs.ji_substate != JOB_SUBSTATE_WAITING_JOIN_JOB) {
 				pjob->ji_qs.ji_substate = JOB_SUBSTATE_WAITING_JOIN_JOB;
 				pjob->ji_joinalarm = time_now + joinjob_alarm_time;
-				sprintf(log_buffer, "job waiting up to %u secs ($sister_join_job_alarm) for all sister moms to join", joinjob_alarm_time);
+				sprintf(log_buffer, "job waiting up to %d secs ($sister_join_job_alarm) for all sister moms to join", joinjob_alarm_time);
 				log_event(PBSEVENT_DEBUG3, PBS_EVENTCLASS_JOB, LOG_INFO, pjob->ji_qs.ji_jobid, log_buffer);
 				log_buffer[0] = '\0';
 			}

@@ -9761,7 +9761,7 @@ main(int argc, char *argv[])
 				(pjob->ji_qs.ji_substate == JOB_SUBSTATE_WAITING_JOIN_JOB) &&
 				(pjob->ji_joinalarm != 0) &&
 				(pjob->ji_joinalarm < time_now)) {
-				sprintf(log_buffer, "sister_join_job_alarm wait time %u secs exceeded", joinjob_alarm_time);
+				snprintf(log_buffer, sizeof(log_buffer), "sister_join_job_alarm wait time %d secs exceeded", joinjob_alarm_time);
 				log_event(PBSEVENT_ADMIN, PBS_EVENTCLASS_JOB,
 					  LOG_INFO, pjob->ji_qs.ji_jobid, log_buffer);
 				pjob->ji_qs.ji_substate = JOB_SUBSTATE_PRERUN;

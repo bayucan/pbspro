@@ -5877,8 +5877,6 @@ recreate_exec_vnode(job *pjob, char *vnodelist, char *err_msg,
 	char	*new_deallocated_execvnode = NULL;
 	resource_def	*prdefsl = NULL;
 	resource	*presc;
-	char	buf[LOG_BUF_SIZE] = {0};
-	resource_def	*pdef;
 	attribute	deallocated_execvnode_attr;
 	int		rc = 1;
 	relnodes_input_t		r_input;

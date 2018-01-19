@@ -3108,9 +3108,7 @@ main(int argc, char *argv[], char *envp[])
 				if (hook_event == HOOK_EVENT_EXECJOB_PROLOGUE) {
 					req_params.vns_list_fail = (pbs_list_head *)&event_vnode_fail;
 					req_params.failed_mom_list = (pbs_list_head *)&job_failed_mom_list;
-					print_svrattrl_list("pbs_python failed_mom_list==>", &job_failed_mom_list);
 					req_params.succeeded_mom_list = (pbs_list_head *)&job_succeeded_mom_list;
-					print_svrattrl_list("pbs_python succeeded_mom_list==>", &job_succeeded_mom_list);
 				}
 
 				rc = pbs_python_event_set(hook_event, req_user,

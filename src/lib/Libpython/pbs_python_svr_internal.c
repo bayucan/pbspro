@@ -6028,7 +6028,6 @@ int
 _pbs_python_event_to_request(unsigned int hook_event, hook_output_param_t *req_params)
 {
 	PyObject 		*py_job = (PyObject *)NULL;
-	PyObject 		*py_vnode = (PyObject *)NULL;
 	PyObject 		*py_joblist = (PyObject *)NULL;
 	PyObject 		*py_job_o = (PyObject *)NULL;
 	PyObject 		*py_resv = (PyObject *)NULL;
@@ -11563,7 +11562,6 @@ pbsv1mod_meth_release_nodes(PyObject *self, PyObject *args, PyObject *kwds)
 	PyObject *py_job  = (PyObject *)NULL;
 	PyObject *py_nodes_list  = (PyObject *)NULL;
 	PyObject *py_keep_select = (PyObject *)NULL;
-	PyObject *py_vnodelist = (PyObject *)NULL;
 	PyObject *py_nodes = (PyObject *) NULL;
 	PyObject *py_attr_hookset_dict = (PyObject *)NULL;
 	PyObject *py_attr_hookset_dict0 = (PyObject *)NULL;
@@ -11668,8 +11666,8 @@ pbsv1mod_meth_release_nodes(PyObject *self, PyObject *args, PyObject *kwds)
 			free(vn_name);
 		}
 	} else {
-		char *str = NULL;
-		str = pbs_python_object_str(py_keep_select);
+		char *str = pbs_python_object_str(py_keep_select);
+
 		if ((str == NULL) || (str[0] == '\0')) {
 			log_err(-1, __func__, "empty keep_select value");
 			goto release_nodes_exit;

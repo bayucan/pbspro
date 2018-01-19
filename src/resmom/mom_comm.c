@@ -49,7 +49,10 @@
 #include	<dirent.h>
 #include	<pwd.h>
 #include	<netdb.h>
+#include	<sys/socket.h>
 #include	<netinet/in.h>
+#include	<arpa/inet.h>
+
 #include	<sys/param.h>
 #include	<sys/times.h>
 #include	<sys/time.h>
@@ -886,6 +889,10 @@ prune_exec_vnode(job *pjob,  char *select_str, vnl_t **failed_vnodes, vnl_t **go
 	}
 
 	execvnode = pjob->ji_wattr[(int)JOB_ATR_exec_vnode].at_val.at_str;
+	if (execvnode == NULL) {
+		log_err(-1, __func__, "execvnode is NULL");
+		return (1);
+	}
 
 	if (((pjob->ji_wattr[(int)JOB_ATR_exec_host].at_flags & ATR_VFLAG_SET) != 0) &&
 	    (pjob->ji_wattr[(int)JOB_ATR_exec_host].at_val.at_str != NULL)) {
@@ -926,7 +933,11 @@ prune_exec_vnode(job *pjob,  char *select_str, vnl_t **failed_vnodes, vnl_t **go
 	r_input_select.good_vnodes = (void **)good_vnodes;
 	rc = pbs_release_nodes_given_select(&r_input, &r_input_select, err_msg, LOG_BUF_SIZE);
 
-	snprintf(log_buffer, sizeof(log_buffer), "MOM: release_nodes_given_select: AFT rc=%d keep_select=%s execvnode=%s exechost=%s exechost2=%s new_exec_vnode=%s new_exec_host=%s new_exec_host2=%s new_schedselect=%s", rc, "NULL", execvnode, exechost?exechost:"null", exechost2?exechost2:"null", new_exec_vnode, new_exec_host, new_exec_host2, new_schedselect);
+	snprintf(log_buffer, sizeof(log_buffer), "MOM: release_nodes_given_select: AFT rc=%d keep_select=%s execvnode=%s exechost=%s exechost2=%s new_exec_vnode=%s new_exec_host=%s new_exec_host2=%s new_schedselect=%s", rc, "NULL", execvnode,
+		exechost ? exechost : "null", exechost2 ? exechost2 : "null",
+		new_exec_vnode ? new_exec_vnode : "null",
+		new_exec_host ? new_exec_host: "null",
+		new_exec_host2 ? new_exec_host2: "null", new_schedselect);
 	log_event(PBSEVENT_DEBUG4, PBS_EVENTCLASS_SERVER, LOG_ERR, __func__, log_buffer);
 
 	if ((rc != 0) || (select_str == NULL)) {
@@ -937,13 +948,14 @@ prune_exec_vnode(job *pjob,  char *select_str, vnl_t **failed_vnodes, vnl_t **go
 		goto prune_exec_vnode_exit;
 	}
 
-	if (strcmp(execvnode, new_exec_vnode) == 0) {
-		/* there was no change */
-		rc = 0;
-		goto prune_exec_vnode_exit;
-	}
-
 	if (new_exec_vnode != NULL) {
+	
+		if (strcmp(execvnode, new_exec_vnode) == 0) {
+			/* there was no change */
+			rc = 0;
+			goto prune_exec_vnode_exit;
+		}
+
 		entry = strlen(new_exec_vnode) - 1;
 		if (new_exec_vnode[entry] == '+')
 			new_exec_vnode[entry] = '\0';
@@ -5044,7 +5056,7 @@ join_err:
 						snprintf(log_buffer, sizeof(log_buffer), "IM_UPDATE_JOB ERROR and I'm not MS");
 						goto err;
 					}
-					DBPRT(("%s: IM_UPDATE_JOB %s returned ERROR %d\n", id, jobid, errcode))
+					DBPRT(("%s: IM_UPDATE_JOB %s returned ERROR %d\n", __func__, jobid, errcode))
 					if (errmsg != NULL) {
 						log_event(PBSEVENT_DEBUG3, PBS_EVENTCLASS_JOB,
 							  LOG_INFO, jobid, errmsg);
@@ -5147,7 +5159,6 @@ join_err:
 				log_event(PBSEVENT_DEBUG2, PBS_EVENTCLASS_JOB,
 					LOG_DEBUG, pjob->ji_qs.ji_jobid, log_buffer);
 				goto err;
-				break;
 			}
 			ret = im_compose(stream, jobid, cookie,
 				IM_ALL_OKAY,
@@ -5364,7 +5375,6 @@ tm_request(int fd, int version)
 	attribute			*at;
 	extern u_long			localaddr;
 	char				hook_msg[HOOK_MSG_SIZE+1];
-	int				hook_errcode = 0;
 	int				argc = 0;
 	int				found_empty_string = 0;
 	mom_hook_input_t		hook_input;

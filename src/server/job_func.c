@@ -132,6 +132,7 @@
 #include "acct.h"
 #include "credential.h"
 #include "net_connect.h"
+#include "pbs_reliable.h"
 
 
 /* External functions */

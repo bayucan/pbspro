@@ -260,11 +260,11 @@ class _job(object):
     def __new__(cls,value,connect_server=None):
         return object.__new__(cls, value)
     
-    def __init__(self,id,connect_server=None,
+    def __init__(self,jid,connect_server=None,
                  failed_node_list=None, node_list=None):
         """__init__"""
 
-        self.id = id
+        self.id = jid
         self._connect_server = connect_server
         self._readonly = False
         self._rerun = False

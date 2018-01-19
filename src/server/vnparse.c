@@ -1142,7 +1142,7 @@ return_missing_resources(char *chunk, char *res_list)
 	int		rc = 0;
 	static char	*ret_buf = NULL;
 	static int	ret_buf_size = 0;
-	int		l, p;
+	int		l;
 	char		*chunk_dup = NULL;
 
 	if ((res_list == NULL) || (chunk == NULL)) {
@@ -1600,6 +1600,7 @@ manage_resc_sum_values(enum resc_sum_action action, resource_def *resc_def, char
 		}
 		return (buf);	
 	}
+	return (NULL);
 }
 
 /*
@@ -1641,7 +1642,6 @@ int
 pbs_release_nodes_given_nodelist(relnodes_input_t *r_input, relnodes_input_vnodelist_t *r_input2, char *err_msg, int err_msg_sz)
 {
 	char	*new_exec_vnode = NULL;
-	char	*new_exec_vnode_deallocated = NULL;
 	char	*new_exec_host = NULL;
 	char	*new_exec_host2 = NULL;
 	char	*new_select = NULL;
@@ -1659,26 +1659,18 @@ pbs_release_nodes_given_nodelist(relnodes_input_t *r_input, relnodes_input_vnode
 	int	hasprn1 = 0;
 	int	hasprn2 = 0;
 	int	hasprn3 = 0;
-	int	entry0 = 0;
 	int	entry = 0;
 	int	f_entry = 0;
 	int	h_entry = 0;
 	int	sel_entry = 0;
-	int	i,j,k,np;
+	int	j;
 	int	nelem;
 	char	*noden;
 	struct	key_value_pair *pkvp;
 	char	buf[LOG_BUF_SIZE] = {0};
-	attribute *pexech;
-	attribute *pexech1;
-	attribute *pexech2;
-	resource	*presc;
 	struct	pbsnode *pnode = NULL;
-	resource_def	*prdefsl = NULL;
 	int		rc = 1;
-	resource_def	*pdef;
 	int		ns_malloced = 0;
-	char		*tmp_str = NULL;
 	char		*buf_sum = NULL;
 	int		paren = 0;
 	int		found_paren = 0;
@@ -1787,7 +1779,6 @@ pbs_release_nodes_given_nodelist(relnodes_input_t *r_input, relnodes_input_vnode
 	/* There's a 1:1:1 mapping among exec_vnode parenthesized
 	 * entries, exec_host, and exec_host2.
 	 */
-	entry0 = 0;	/* exec_vnode_deallocated entries */
 	entry = 0;	/* exec_vnode entries */
 	h_entry = 0;	/* exec_host* entries */
 	sel_entry = 0;	/* select and schedselect entries */
@@ -1963,8 +1954,6 @@ pbs_release_nodes_given_nodelist(relnodes_input_t *r_input, relnodes_input_vnode
 				entry++;
 
 				for (j = 0; j < nelem; ++j) {
-					attribute   tmpatr;
-					int r;
 
 					resc_def = find_resc_def(svr_resc_def, pkvp[j].kv_keyw,
 										svr_resc_size);
@@ -2194,8 +2183,8 @@ pbs_release_nodes_given_nodelist(relnodes_input_t *r_input, relnodes_input_vnode
 	/* output message about nodes to be freed but no part of job */	
 	if ((r_input2->vnodelist != NULL) && (err_msg != NULL) &&
 					(err_msg_sz > 0)) {
-		char	*tmpbuf = NULL;
-		char	*tmpbuf2 = NULL;
+		char	*tmpbuf;
+		char	*tmpbuf2;
 		char	*pc = NULL;
 		char	*pc1 = NULL;
 		char	*save_ptr;	/* posn for strtok_r() */
@@ -2645,26 +2634,6 @@ resc_limit_list_free(pbs_list_head *res_list)
 	}
 }
 
-static void
-resc_limit_print(resc_limit_t *have, char *header_str)
-{
-	if (have == NULL)
-		return;
-	snprintf(log_buffer, sizeof(log_buffer), "%s: ncpus=%d ssi=%d netwins=%d mem=%lld vmem=%lld naccels=%d accel_mem=%lld chunkstr=%s h_chunkstr=%s h2_chunkstr=%s",
-		header_str,
-		have->rl_ncpus,
-		have->rl_ssi,
-		have->rl_netwins,
-		have->rl_mem,
-		have->rl_vmem,
-		have->rl_naccels,
-		have->rl_accel_mem,
-		have->chunkstr?have->chunkstr:"",
-		have->h_chunkstr?have->h_chunkstr:"",
-		have->h2_chunkstr?have->h2_chunkstr:"");
-	log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_RESC, LOG_INFO, __func__, log_buffer);
-}
-
 /**
  * @brief
  *	Print out the entries in the 'res_list' the server log under 'logtype'
@@ -2737,7 +2706,7 @@ intmap_need_to_have_resources(char *buf, size_t buf_sz,
 	char	*endp;
 
 	if ((have_resc == NULL) || (have_val == NULL) || (buf == NULL) ||
-	    (buf_sz <= 0) || (map_need_val == NULL) ) {
+	    (buf_sz == 0) || (map_need_val == NULL) ) {
 		log_err(-1, __func__, "map_need_to_have_resources");
 		return;
 	}
@@ -2787,7 +2756,7 @@ sizemap_need_to_have_resources(char *buf, size_t buf_sz, char *have_resc, char *
 	long long have_size;
 
 	if ((have_resc == NULL) || (have_val == NULL) || (buf == NULL) ||
-	    (buf_sz <= 0) || (map_need_val == NULL) ) {
+	    (buf_sz == 0) || (map_need_val == NULL) ) {
 		log_err(-1, __func__, "map_need_to_have_resources");
 		return;
 	}
@@ -2830,7 +2799,7 @@ map_need_to_have_resources(char *buf, size_t buf_sz, char *have_resc,
 			    char *have_val, resc_limit_t *need)
 {
 
-	if ((buf == NULL) || (buf_sz <= 0) || (have_resc == NULL) ||
+	if ((buf == NULL) || (buf_sz == 0) || (have_resc == NULL) ||
 	     (have_val == NULL) | (need == NULL)) {
 		return;
 	}
@@ -2977,7 +2946,7 @@ satisfy_chunk_need(resc_limit_t *need, resc_limit_t *have, vnl_t **vnlp)
 	if ((have->chunkstr == NULL) || (have->chunkstr[0] == '\0'))
 		return (NULL);
 
-	memset(&map_need, 0, sizeof(need));
+	memset(&map_need, 0, sizeof(resc_limit_t));
 	resc_limit_init(&map_need);
 
 	map_need.rl_ncpus = need->rl_ncpus;
@@ -3186,10 +3155,7 @@ pbs_release_nodes_given_select(relnodes_input_t *r_input, relnodes_input_select_
 	resc_limit_t 	*have = NULL;
 	resc_limit_t	*have2 = NULL;
 	pbs_list_head	resc_limit_list;
-	int		len = 0;
 	resc_limit_t	*have0 = NULL;
-	char		*tpc = NULL;
-	int		chunk_len = 0;
 
 	char		*selbuf = NULL;
 	char		*psubspec;
@@ -3212,10 +3178,11 @@ pbs_release_nodes_given_select(relnodes_input_t *r_input, relnodes_input_select_
 	char		*tmpstr;
 	char		*chunk_buf = NULL;
 	int		chunk_buf_sz = 0;
-	struct pbsnode	*pnode = NULL;
 	resource_def	*resc_def = NULL;
 #ifdef PBS_MOM
 	momvmap_t 	*vn_vmap = NULL;
+#else
+	struct pbsnode	*pnode = NULL;
 #endif
 
 	if ((r_input == NULL) || (r_input2 == NULL) || (r_input->jobid == NULL) || (r_input->execvnode == NULL) || (r_input->exechost == NULL) || (r_input->exechost2 == NULL) || (err_msg == NULL) || (err_msg_sz <= 0)) {
@@ -3328,7 +3295,6 @@ pbs_release_nodes_given_select(relnodes_input_t *r_input, relnodes_input_select_
 				strncpy(prev_noden, noden, PBS_MAXNODENAME);
 			} else {
 				/* see if previous entry already matches this */
-
 				if ((pnode == NULL) || 
 					(strcmp(pnode->nd_name, noden) != 0)) {
 					pnode = find_nodebyname(noden);
@@ -3429,8 +3395,6 @@ pbs_release_nodes_given_select(relnodes_input_t *r_input, relnodes_input_select_
 				entry++;
 
 				for (j = 0; j < nelem; ++j) {
-					attribute   tmpatr;
-					int r;
 
 					resc_def = find_resc_def(svr_resc_def, pkvp[j].kv_keyw,
 										svr_resc_size);
