@@ -1,4 +1,5 @@
 # IGNORE: The following are purposely suppressed.
+addFilter("script-without-shebang .*.la")
 addFilter("dir-or-file-in-opt")
 addFilter("non-executable-script")
 addFilter("non-standard-executable-perm .*pbs_iff")
