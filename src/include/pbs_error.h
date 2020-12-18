@@ -289,7 +289,7 @@ extern "C" {
 #define PBSE_SCHEDCONNECTED	15230
 #define PBSE_NOTARRAY_ATTR  15231		/* Not an array job */
 #define PBSE_UNKOBJ	15232		/* Named object is not in the list nor in alien cache */
-
+#define	PBSE_NOSCREEN_JOB	15233	/* not an interactive job running screen */
 
 /* the following structure is used to tie error number      */
 /* with text to be returned to a client, see svr_messages.c */
